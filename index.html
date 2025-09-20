@@ -1,0 +1,327 @@
+<!DOCTYPE html><html lang="id"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seren AI Hub</title>
+  <link href="assets/fonts.googleapis.com_css2.css" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f5f7fa;
+      --card: #ffffff;
+      --text: #222;
+      --primary: #4682b4;
+      --primary-dark: #1a5276;
+      --radius: 12px;
+      --shadow: 0 4px 20px rgba(0,0,0,.08);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f172a;
+        --card: #1e293b;
+        --text: #f1f5f9;
+        --primary: #60a5fa;
+        --primary-dark: #3b82f6;
+      }
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+    h1 {
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      margin-bottom: .25rem;
+      letter-spacing: -.5px;
+    }
+    p.sub {
+      font-size: .95rem;
+      opacity: .7;
+      margin-bottom: 2rem;
+    }
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 2rem;
+      width: 100%;
+      max-width: 480px;
+    }
+    select, input, button {
+      width: 100%;
+      padding: .85rem 1rem;
+      border-radius: var(--radius);
+      border: 1px solid rgba(0,0,0,.1);
+      font-size: 1rem;
+      outline: none;
+      margin-bottom: 1rem;
+      transition: border .2s, box-shadow .2s;
+    }
+    select:focus, input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(70,130,180,.25);
+    }
+    button {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 0;
+    }
+    button:hover {
+      background: var(--primary-dark);
+    }
+    button:disabled {
+      background: #94a3b8;
+      cursor: not-allowed;
+    }
+    .loader {
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(0,0,0,.1);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      margin: 1.5rem auto;
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .result {
+      margin-top: 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: center;
+    }
+    .result-item {
+      flex: 1 1 180px;
+      max-width: 220px;
+    }
+    .result-item img, .result-item video {
+      width: 100%;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .download-btn {
+      display: inline-block;
+      margin-top: .5rem;
+      background: var(--primary-dark);
+      color: #fff;
+      padding: .4rem 1rem;
+      border-radius: 999px;
+      font-size: .8rem;
+      text-decoration: none;
+    }
+    .download-btn:hover {
+      background: var(--primary);
+    }
+  </style>
+</head>
+<body>
+
+  <h1>✨SEREN MULTI TOOLS✨</h1>
+  <p class="sub">One For All✨</p>
+
+  <div class="card">
+    <select id="feature" onchange="toggleInputs()">
+      <option value="">Pilih Fitur…</option>
+      <optgroup label="AI Image">
+        <option value="flux">Flux</option>
+        <option value="stabilityai">StabilityAI</option>
+        <option value="stable-diffusion">Stable Diffusion</option>
+        <option value="faceswap">Face Swap</option>
+        <option value="text2imgnfws">Text → Image (NSFW)</option>
+        <option value="magicstudio">Magic Studio</option>
+      </optgroup>
+      <optgroup label="AI Video">
+        <option value="texttovideo">Text → Video</option>
+      </optgroup>
+      <optgroup label="AI Tools">
+        <option value="describeimage">Describe Image</option>
+        <option value="nik-checker">NIK Checker</option>
+      </optgroup>
+      <optgroup label="Downloader">
+        <option value="aio">All-in-One Downloader</option>
+        <option value="skiplink">Skip Link</option>
+      </optgroup>
+      <optgroup label="Maker">
+        <option value="figure">Figure Maker</option>
+        <option value="yapping">Yapping</option>
+        <option value="fakechatfb">Fake Chat FB</option>
+        <option value="logomaker">Logo Maker</option>
+        <option value="iqc">IQC Maker</option>
+      </optgroup>
+      <optgroup label="NSFW">
+        <option value="thehentai-search">The Hentai Search</option>
+      </optgroup>
+    </select>
+
+    <div id="dynamic-inputs"></div>
+
+    <button onclick="generate()">🚀 Proses</button>
+
+    <div id="result" class="result"></div>
+  </div>
+
+  <script>
+    const apiMap = {
+      flux: 'https://api.siputzx.my.id/api/ai/flux',
+      stabilityai: 'https://api.siputzx.my.id/api/ai/stabilityai',
+      'stable-diffusion': 'https://api.siputzx.my.id/api/ai/stable-diffusion',
+      faceswap: 'https://api.siputzx.my.id/api/imgedit/faceswap',
+      text2imgnfws: 'https://api.sxtream.xyz/ai/text2imgnfws',
+      magicstudio: 'https://api.siputzx.my.id/api/ai/magicstudio',
+      describeimage: 'https://api.sxtream.xyz/ai/describe-image',
+      texttovideo: 'https://api.sxtream.xyz/ai/texttovideo',
+      aio: 'https://api.sxtream.xyz/downloader/aio',
+      'nik-checker': 'https://api.siputzx.my.id/api/tools/nik-checker',
+      skiplink: 'https://api.sxtream.xyz/api/tools/skiplink',
+      figure: 'https://api.sxtream.xyz/maker/figure',
+      yapping: 'https://api.sxtream.xyz/maker/yapping',
+      fakechatfb: 'https://api.sxtream.xyz/maker/fake-chat-fb',
+      logomaker: 'https://api.sxtream.xyz/maker/logomaker',
+      iqc: 'https://api.sxtream.xyz/maker/iqc',
+      'thehentai-search': 'https://api.sxtream.xyz/dewasa/thehentai-search'
+    };
+
+    const inputMap = {
+      'flux': [{ id: 'prompt', paramName: 'prompt', placeholder: 'Prompt...' }],
+      'stabilityai': [{ id: 'prompt', paramName: 'prompt', placeholder: 'Prompt...' }],
+      'stable-diffusion': [{ id: 'prompt', paramName: 'prompt', placeholder: 'Prompt...' }],
+      'faceswap': [
+        { id: 'image1', paramName: 'image1', placeholder: 'URL Gambar 1', required: true },
+        { id: 'image2', paramName: 'image2', placeholder: 'URL Gambar 2', required: true }
+      ],
+      'text2imgnfws': [
+        { id: 'prompt', paramName: 'prompt', placeholder: 'Prompt...', required: true },
+        { id: 'style', paramName: 'style', type: 'select', options: ['Anime', 'Realistic'] }
+      ],
+      'magicstudio': [{ id: 'prompt', paramName: 'prompt', placeholder: 'Prompt...', required: true }],
+      'texttovideo': [{ id: 'prompt', paramName: 'prompt', placeholder: 'Prompt...', required: true }],
+      'describeimage': [
+        { id: 'imageUrl', paramName: 'imageUrl', placeholder: 'URL Gambar...', required: true },
+        { id: 'prompt', paramName: 'prompt', placeholder: 'Prompt (Opsional)...' }
+      ],
+      'nik-checker': [{ id: 'nik', paramName: 'nik', placeholder: 'Masukkan 16 digit NIK', required: true, pattern: /^\d{16}$/, patternError: 'NIK harus 16 digit angka!' }],
+      'aio': [{ id: 'url', paramName: 'url', placeholder: 'URL video/gambar...', required: true }],
+      'skiplink': [{ id: 'url', paramName: 'url', placeholder: 'URL yang ingin dilewati...', required: true }],
+      'figure': [{ id: 'url', paramName: 'url', placeholder: 'URL gambar...', required: true }],
+      'yapping': [{ id: 'name', paramName: 'name', placeholder: 'Nama...' }],
+      'fakechatfb': [
+        { id: 'name', paramName: 'name', placeholder: 'Nama...', required: true },
+        { id: 'comment', paramName: 'comment', placeholder: 'Komentar...', required: true },
+        { id: 'profileUrl', paramName: 'profileUrl', placeholder: 'URL Profil...' }
+      ],
+      'logomaker': [{ id: 'text', paramName: 'text', placeholder: 'Teks...', required: true }],
+      'iqc': [{ id: 'text', paramName: 'text', placeholder: 'Teks...', required: true }],
+      'thehentai-search': [{ id: 'q', paramName: 'q', placeholder: 'Keyword pencarian...', required: true }]
+    };
+
+    function toggleInputs() {
+      const feature = document.getElementById('feature').value;
+      const container = document.getElementById('dynamic-inputs');
+      container.innerHTML = '';
+      const rules = inputMap[feature];
+      if (!rules) {
+        const inp = document.createElement('input');
+        inp.type = 'text'; inp.id = 'prompt'; inp.placeholder = 'Masukkan input';
+        container.appendChild(inp); return;
+      }
+      rules.forEach(rule => {
+        if (rule.type === 'select') {
+          const s = document.createElement('select'); s.id = rule.id;
+          rule.options.forEach(o => { const opt = document.createElement('option'); opt.value = o; opt.textContent = o; s.appendChild(opt); });
+          container.appendChild(s);
+        } else {
+          const i = document.createElement('input');
+          i.type = 'text'; i.id = rule.id; i.placeholder = rule.placeholder;
+          container.appendChild(i);
+        }
+      });
+    }
+
+    function validateInputs(feature, params) {
+      const rules = inputMap[feature];
+      if (!rules) return !!(params.prompt && params.prompt.trim());
+      for (const r of rules) {
+        const v = params[r.id];
+        if (r.required && (!v || !v.trim())) { alert(`Input '${r.placeholder}' tidak boleh kosong!`); return false; }
+        if (r.pattern && !r.pattern.test(v)) { alert(r.patternError || `Input '${r.placeholder}' tidak valid!`); return false; }
+      }
+      return true;
+    }
+
+    function createDownload(url, filename = 'Sxtream_' + Date.now()) {
+      const a = document.createElement('a');
+      a.href = url; a.download = filename; a.style.display = 'none';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    }
+
+    async function generate() {
+      const feature = document.getElementById('feature').value;
+      const resultDiv = document.getElementById('result');
+      const btn = document.querySelector('button');
+      if (!feature) { alert('Pilih fitur dulu!'); return; }
+      let params = {};
+      document.querySelectorAll('#dynamic-inputs input, #dynamic-inputs select').forEach(el => params[el.id] = el.value);
+      if (!validateInputs(feature, params)) return;
+      let url = apiMap[feature] + '?' + new URLSearchParams(Object.entries(params)).toString();
+      resultDiv.innerHTML = '<div class="loader"></div><p>Loading...</p>';
+      btn.disabled = true;
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+        const ct = res.headers.get('Content-Type') || '';
+        let content = '', mediaUrls = [];
+        if (ct.startsWith('image/') || ct.startsWith('video/')) mediaUrls.push(res.url);
+        else if (ct.startsWith('application/json')) {
+          const d = await res.json();
+          if (d.result && typeof d.result === 'string') mediaUrls.push(d.result);
+          else if (d.data && typeof d.data === 'string') mediaUrls.push(d.data);
+          else if (d.imageUrl) mediaUrls.push(d.imageUrl);
+          else if (d.image) mediaUrls.push(d.image);
+          else if (d.result && d.result.posts && Array.isArray(d.result.posts)) mediaUrls = d.result.posts.map(p => p.imgSrc);
+          else if (d.result && Array.isArray(d.result)) mediaUrls = d.result.map(p => p.imgSrc || p.url);
+          else content = `<pre><code>${JSON.stringify(d, null, 2)}</code></pre>`;
+          if (feature === 'nik-checker' && d.data && d.data.data) {
+            const nd = d.data.data;
+            content = `<div class="formatted-output"><h3>Data NIK</h3>
+              <p><strong>Nama:</strong> ${nd.nama}</p><p><strong>NIK:</strong> ${d.data.nik}</p>
+              <p><strong>Jenis Kelamin:</strong> ${nd.kelamin}</p><p><strong>TTL:</strong> ${nd.tempat_lahir}</p>
+              <p><strong>Usia:</strong> ${nd.usia}</p><p><strong>Provinsi:</strong> ${nd.provinsi}</p>
+              <p><strong>Kabupaten:</strong> ${nd.kabupaten}</p><p><strong>Kecamatan:</strong> ${nd.kecamatan}</p>
+              <p><strong>Kelurahan:</strong> ${nd.kelurahan}</p><p><strong>Alamat:</strong> ${nd.alamat}</p></div>`;
+          } else if (feature === 'skiplink' && d.result) content = `<p class="skiplink-result">Link Berhasil Dilewati: <a href="${d.result}" target="_blank">${d.result}</a></p>`;
+        } else content = `<pre><code>${await res.text()}</code></pre>`;
+        if (mediaUrls.length) {
+          content = '<p>Hasil:</p>';
+          mediaUrls.forEach(url => {
+            const isVid = url.match(/\.(mp4|webm|ogv)$/i) || feature === 'texttovideo';
+            const tag = isVid ? `<video src="${url}" controls autoplay loop muted></video>` : `<img src="${url}" alt="hasil">`;
+            content += `<div class="result-item">${tag}<a class="download-btn" href="#" onclick="createDownload('${url}');return false;">Download</a></div>`;
+          });
+        } else if (!content) content = `<p style="color:#ff6347">❌ Tidak ada hasil yang ditemukan.</p>`;
+        resultDiv.innerHTML = content;
+      } catch (err) {
+        resultDiv.innerHTML = `<p style="color:#ff6347">❌ ${err.message}</p>`;
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    toggleInputs();
+  </script>
+
+
+</body></html>
